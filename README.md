@@ -10,4 +10,4 @@ It is run by a single Groovy script with a configurable `.properties` file and c
 
 # Getting Started
 
-To learn how to use **r9k_b** and how and why it was developed, visit this [page](https://mianlabs.com/2016/10/09/making-a-4chan-twitter-bot-with-groovy-in-8-easy-steps/).
+To learn how to use **r9k_b** and how and why it was developed, visit [this](https://mianlabs.com/2016/10/09/making-a-4chan-twitter-bot-with-groovy-in-8-easy-steps/) page.

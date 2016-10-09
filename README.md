@@ -4,7 +4,7 @@
 <a href="https://github.com/do-adams/r9k_b/blob/master/r9k_b.png"><img src="/r9k_b.png" height="300" width="251"></a>
 </p>
 
-**r9k_b** is a Twitter Bot designed to find "tweetable" comments from 4chan's iconic /r9k/ board and post them to your Twitter account.
+**r9k_b** is a Twitter Bot designed to find "tweetable" comments from 4chan's iconic /r9k/ board and post them to your Twitter account. You can view it in action [here](https://twitter.com/r9k_b).
 
 It is run by a single Groovy script with a configurable `.properties` file and can be easily modified to support any 4chan board.
 

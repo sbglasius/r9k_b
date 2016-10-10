@@ -15,65 +15,47 @@ import twitter4j.TwitterFactory
 @Grab(group='org.jsoup', module='jsoup', version='1.9.2')
 import org.jsoup.Jsoup
 
+final int CHARACTER_LENGTH = 140
+// NO need to create on each iteration
+twitter = TwitterFactory.getSingleton()
+
 while(true) {
-	final String BOARD_NAME = "/r9k/"
-	final String THREAD_CATALOG_REQUEST_URL = "https://a.4cdn.org" + BOARD_NAME + "threads.json"
+    final String BOARD_NAME = "/r9k/"
+    final URL THREAD_CATALOG_REQUEST_URL = "https://a.4cdn.org${BOARD_NAME}threads.json".toURL()
 
-	println "Retrieving " + BOARD_NAME + " data..."
+    println "Retrieving $BOARD_NAME data..."
 
-	threadCatalogData = new URL(THREAD_CATALOG_REQUEST_URL).getText() // Makes the HTTP request.
-	List threadCatalog = new JsonSlurper().parseText(threadCatalogData) // Parses JSONObjects into Maps and JSONArrays into Lists.
+    List threadCatalog = new JsonSlurper().parse(THREAD_CATALOG_REQUEST_URL) // Parses JSONObjects into Maps and JSONArrays into Lists.
 
-	// Store all active threads from the board.
-	listOfThreads = []
-	numOfPages = threadCatalog.size()
-	numOfPages.times { i ->
-		Map catalogPage = threadCatalog.get(i)
-		List threadsInPage = catalogPage.threads
-		numOfThreadsInPage = threadsInPage.size()
-		numOfThreadsInPage.times { j -> listOfThreads << threadsInPage.get(j).no }
-	}
+    // Store all active threads from the board.
+    List<String> listOfThreads = threadCatalog.collect {
+         // Get the threads no as a list
+         it.threads.no
+    }.flatten()
 
-	listOfComments = []
+    // Retrieve all posts from 20% of the most recent threads in the board catalog.
+    List<String> listOfComments = listOfThreads.take(listOfThreads.size().intdiv(5)).collect { choosenThreadNo ->
+        threadPageUrl = "https://a.4cdn.org${BOARD_NAME}thread/${choosenThreadNo}.json".toURL()
 
-	// Retrieve all posts from 20% of the most recent threads in the board catalog.
-	1.upto(listOfThreads.size() / 5) { i ->
-		chosenThreadNo = listOfThreads.get(i)
-		threadPageRequestUrl = "https://a.4cdn.org" + BOARD_NAME + "thread/" + 
-			chosenThreadNo + ".json"
+        Map threadPage = new JsonSlurper().parse(threadPageUrl)
 
-		threadPageData = new URL(threadPageRequestUrl).getText()
-		Map threadPage = new JsonSlurper().parseText(threadPageData)
+        Thread.sleep(2000) // Respect the 4chan API rules.
+        // Get comments from the posts as a list
+        threadPage.posts.com
+    }.flatten().collect {
+        // Get the text comment
+        Jsoup.parse(it).text()
+    }.findAll {
+        // Limit to tweetable comments
+        it.size() <= CHARACTER_LENGTH && !it.contains("www") && !it.contains("http")
+    } 
 
-		List posts = threadPage.posts
+    // Choose a random comment for Twitter posting.
+    String chosenComment = listOfComment[new Random().nextInt(listOfComments.size())]
+	  
+    twitter.updateStatus(chosenComment)
 
-		// Grab all the thread comments of Twitter-able length (with no URLs or web links).
-		final int CHARACTER_LENGTH = 140
-		numOfPosts = posts.size()
-		numOfPosts.times { j ->
-			Map post = posts.get(j)
-			if (post.com != null) {
-				comment = Jsoup.parse(post.com).text() // Removes HTML from comment.
-				if (comment.length() <= CHARACTER_LENGTH && !comment.contains("www") 
-					&& !comment.contains("http"))
-					listOfComments << comment
-			}
-		}
-
-		Thread.sleep(2000) // Respect the 4chan API rules.
-	}
-
-	// Choose a comment for Twitter posting.
-	chosenCommentIndex = new Random().nextInt(listOfComments.size())
-	chosenComment = listOfComments.get(chosenCommentIndex)
-
-	twitter = TwitterFactory.getSingleton()
-	twitter.updateStatus(chosenComment)
-
-	Date date = new Date()
-	SimpleDateFormat today = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z")
-	println today.format(date) + " - Updated Twitter status with: " + chosenComment
-
-	// Wait for a while (15 mins) until the next tweet.
-	Thread.sleep(900000)
+    println "${new Date().format('EEE, d MMM yyyy HH:mm:ss Z')} - Updated Twitter status with: $chosenComment"
+    // Wait for a while (15 mins) until the next tweet.
+    Thread.sleep(900000)
 }

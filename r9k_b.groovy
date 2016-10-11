@@ -1,4 +1,5 @@
 /* Written by Damián Adams
+ * Groovy'fied by Søren Berg Glasius
  * October 2016
  * https://mianlabs.com/2016/10/09/making-a-4chan-twitter-bot-with-groovy-in-8-easy-steps/
  */

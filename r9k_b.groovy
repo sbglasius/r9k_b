@@ -17,7 +17,7 @@ import org.jsoup.Jsoup
 
 final int CHARACTER_LENGTH = 140
 // NO need to create on each iteration
-twitter = TwitterFactory.getSingleton()
+Twitter twitter = TwitterFactory.getSingleton()
 
 while(true) {
     final String BOARD_NAME = "/r9k/"
@@ -34,8 +34,8 @@ while(true) {
     }.flatten()
 
     // Retrieve all posts from 20% of the most recent threads in the board catalog.
-    List<String> listOfComments = listOfThreads.take(listOfThreads.size().intdiv(5)).collect { choosenThreadNo ->
-        threadPageUrl = "https://a.4cdn.org${BOARD_NAME}thread/${choosenThreadNo}.json".toURL()
+    List<String> listOfComments = listOfThreads.take(listOfThreads.size().intdiv(5)).collect { chosenThreadNo ->
+        threadPageUrl = "https://a.4cdn.org${BOARD_NAME}thread/${chosenThreadNo}.json".toURL()
 
         Map threadPage = new JsonSlurper().parse(threadPageUrl)
 
@@ -44,15 +44,15 @@ while(true) {
         threadPage.posts.com
     }.flatten().collect {
         // Get the text comment
-        Jsoup.parse(it).text()
+        it ? Jsoup.parse(it).text() : it
     }.findAll {
         // Limit to tweetable comments
         it.size() <= CHARACTER_LENGTH && !it.contains("www") && !it.contains("http")
     } 
 
     // Choose a random comment for Twitter posting.
-    String chosenComment = listOfComment[new Random().nextInt(listOfComments.size())]
-	  
+    String chosenComment = listOfComments[new Random().nextInt(listOfComments.size())]
+      
     twitter.updateStatus(chosenComment)
 
     println "${new Date().format('EEE, d MMM yyyy HH:mm:ss Z')} - Updated Twitter status with: $chosenComment"

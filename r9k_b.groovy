@@ -48,7 +48,7 @@ while(true) {
         it ? Jsoup.parse(it).text() : it
     }.findAll {
         // Limit to tweetable comments
-        it.size() <= CHARACTER_LENGTH && !it.contains("www") && !it.contains("http")
+        it && it.size() <= CHARACTER_LENGTH && !it.contains("www") && !it.contains("http")
     } 
 
     // Choose a random comment for Twitter posting.
